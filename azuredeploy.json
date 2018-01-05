@@ -251,10 +251,6 @@
                     "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('StorageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')),'2016-01-01').keys[0].value)]",
                     "type" : "Custom"
                     }                
-                },
-                 "RedisConnection" :{
-                    "value" :"[concat(variables('cacheName'),'.redis.cache.usgovcloudapi.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]",
-                    "type" : "Custom"
                 }
             },
             {
@@ -267,7 +263,7 @@
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
                 ],
                 "properties": {
-                    "CacheConnection": "[concat(variables('cacheName'),'.redis.cache.usgovcloudapi.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]",
+                    "RedisConnection": "[concat(variables('cacheName'),'.redis.cache.usgovcloudapi.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]",
                     "Storage:AccountName" : "[variables('StorageAccountName')]" , 
                     "Storage:AccountKey" : "[concat(listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')),'2016-01-01').keys[0].value)]"
                 }
