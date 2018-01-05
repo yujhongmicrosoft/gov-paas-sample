@@ -169,7 +169,7 @@
             },
             "resources": [
             {
-                "name": "[parameters('databaseName')]",
+                "name": "[variables('databaseName')]",
                 "type": "databases",
                 "location": "[resourceGroup().location]",
                 "tags": {
