@@ -154,6 +154,23 @@
           "properties": {
           }
         },
+          {
+                "name": "[variables('cacheName')]",
+                "type": "Microsoft.Cache/Redis",
+                "location": "[resourceGroup().location]",
+                "apiVersion": "2015-08-01",
+                "dependsOn": [ ],
+                "tags": {
+                    "displayName": "cache"
+                },
+                "properties": {
+                    "sku": {
+                        "name": "[parameters('cacheSKUName')]",
+                        "family": "[parameters('cacheSKUFamily')]",
+                        "capacity": "[parameters('cacheSKUCapacity')]"
+                    }
+                }
+            },
         {
             "name": "[variables('sqlserverName')]",
             "type": "Microsoft.Sql/servers",
@@ -168,21 +185,23 @@
             "version": "12.0"
             },
             "resources": [
-            {
-                "name": "[variables('databaseName')]",
-                "type": "databases",
-                "location": "[resourceGroup().location]",
-                "tags": {
+               {
+              "name": "[variables('databaseName')]",
+              "type": "databases",
+              "location": "[resourceGroup().location]",
+              "tags": {
                 "displayName": "Database"
-                },
-                "apiVersion": "2014-04-01-preview",
-                "dependsOn": [
-                "[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
-                ],
-                "properties": {
-                "maxSizeBytes": "[parameters('maxSizeBytes')]",
-                "requestedServiceObjectiveName": "[parameters('requestedServiceObjectiveName')]"
-                }
+              },
+              "apiVersion": "2015-01-01",
+              "dependsOn": [
+                "[variables('sqlserverName')]"
+              ],
+              "properties": {
+                "edition": "Basic",
+                "collation": "SQL_Latin1_General_CP1_CI_AS",
+                "maxSizeBytes": "1073741824",
+                "requestedServiceObjectiveName": "Basic"
+              }
             },
             {
                 "type": "firewallrules",
@@ -221,8 +240,8 @@
             "type": "Microsoft.Web/sites",
             "location": "[resourceGroup().location]",
             "dependsOn": [
-            "[concat('Microsoft.Web/serverFarms/', variables('hostingPlanName'))]",
-            "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]"
+            "[concat('Microsoft.Web/serverFarms/', variables('hostingPlanName'))]"
+
             ],
             "tags": {
             "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/', variables('hostingPlanName'))]": "empty",
@@ -240,16 +259,17 @@
                 "dependsOn": [
                 "[concat('Microsoft.Web/Sites/', variables('webSiteName'))]",
                 "[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]",
+                "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
                 ],
                 "properties": {
                 "DefaultConnection": {
-                    "value": "[concat('Server=tcp:inventorydb.database.usgovcloudapi.net,1433;Initial Catalog=',variables('sqlserverName'), ';Persist Security Info=False;User ID=', parameters('administratorLogin'),';Password=', parameters('administratorLoginPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
-                    "type": "Custom"
+                    "value": "[concat('Server=tcp:',variables('databaseName'),'.database.usgovcloudapi.net,1433;Initial Catalog=',variables('sqlserverName'),';Persist Security Info=False;User ID=', parameters('administratorLogin'),';Password=', parameters('administratorLoginPassword'),';MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;')]",
+                    "type": "SQLAzure"
                 },
-                 "AzureWebJobsStorage" :{
-                    "value": "[concat('DefaultEndpointsProtocol=https;AccountName=',variables('StorageAccountName'),';AccountKey=',listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')),'2016-01-01').keys[0].value)]",
-                    "type" : "Custom"
+                  "RedisConnection" :{
+                    "value": "[concat(variables('cacheName'),'.redis.cache.usgovcloudapi.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]",
+                    "type" : "RedisCache"
                     }                
                 }
             },
@@ -259,11 +279,9 @@
                 "name": "appsettings",
                 "dependsOn": [
                 "[concat('Microsoft.Web/Sites/', variables('webSiteName'))]",
-                "[concat('Microsoft.Cache/Redis/', variables('cacheName'))]",
                 "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
                 ],
                 "properties": {
-                    "RedisConnection": "[concat(variables('cacheName'),'.redis.cache.usgovcloudapi.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('cacheName')), '2015-08-01').primaryKey)]",
                     "Storage:AccountName" : "[variables('StorageAccountName')]" , 
                     "Storage:AccountKey" : "[concat(listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('StorageAccountName')),'2016-01-01').keys[0].value)]"
                 }
@@ -281,24 +299,7 @@
                 "IsManualIntegration": true
               }
             }
-            ]
-        },
-        {
-                "name": "[variables('cacheName')]",
-                "type": "Microsoft.Cache/Redis",
-                "location": "[resourceGroup().location]",
-                "apiVersion": "2015-08-01",
-                "dependsOn": [ ],
-                "tags": {
-                    "displayName": "cache"
-                },
-                "properties": {
-                    "sku": {
-                        "name": "[parameters('cacheSKUName')]",
-                        "family": "[parameters('cacheSKUFamily')]",
-                        "capacity": "[parameters('cacheSKUCapacity')]"
-                    }
-                }
-            }
+           ]
+        }
         ]
     }
