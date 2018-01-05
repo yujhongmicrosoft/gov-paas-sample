@@ -118,7 +118,7 @@
             "description": "The size of the new Azure Redis Cache instance. "
             }
         },
-        "Type": {
+        "storageAccountType": {
           "type": "string",
           "defaultValue": "Standard_LRS",
           "allowedValues": [
