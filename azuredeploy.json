@@ -198,22 +198,25 @@
                     "collation": "SQL_Latin1_General_CP1_CI_AS",
                     "maxSizeBytes": "1073741824",
                     "requestedServiceObjectiveName": "S0"
-                  }
+                  },
+                 "tags": {
+                    "displayName": "Database"
+                    }
                 },
                 {
                   "apiVersion": "2014-04-01-preview",
-                  "dependsOn": [
-                    "[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
-                  ],
-                  "location": "[resourceGroup().location]",
                   "name": "AllowAllWindowsAzureIps",
+                  "type": "firewallrules",
+                  "location": "[resourceGroup().location]",
+                  "dependsOn": [
+                    "[resourceId('Microsoft.Sql/servers', variables('sqlserverName'))]"
+                  ],
                   "properties": {
-                    "endIpAddress": "0.0.0.0",
-                    "startIpAddress": "0.0.0.0"
-                  },
-                  "type": "firewallrules"
+                    "startIpAddress": "0.0.0.0",
+                    "endIpAddress": "0.0.0.0"
+                    }
                 }
-            ]
+          ]
         },
         {
             "apiVersion": "2015-08-01",
