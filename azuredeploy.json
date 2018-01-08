@@ -178,7 +178,7 @@
             "tags": {
             "displayName": "SqlServer"
             },
-            "apiVersion": "2014-04-01-preview",
+            "apiVersion": "2014-04-01",
             "properties": {
             "administratorLogin": "[parameters('administratorLogin')]",
             "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
@@ -189,7 +189,7 @@
                   "name": "[variables('databaseName')]",
                   "type": "databases",
                   "location": "[resourceGroup().location]",
-                  "apiVersion": "2014-04-01-preview",
+                  "apiVersion": "2015-01-01",
                   "dependsOn": [
                     "[concat('Microsoft.Sql/servers/', variables('sqlserverName'))]"
                   ],
