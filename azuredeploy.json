@@ -192,7 +192,7 @@
                   "tags": {
                     "displayName": "Database"
                   },
-                  "apiVersion": "2014-04-01-preview",
+                  "apiVersion": "2014-04-01",
                   "dependsOn": [
                     "[variables('sqlserverName')]"
                   ],
