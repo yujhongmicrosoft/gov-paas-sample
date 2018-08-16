@@ -7,7 +7,7 @@ using Microsoft.Extensions.Caching.Distributed;
 
 namespace InventoryApp.Services
 {
-    public class CacheClient
+    public class CacheClient : ICacheClient
     {
         private IDistributedCache cache;
         private TCconfig config;

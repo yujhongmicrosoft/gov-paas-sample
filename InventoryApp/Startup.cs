@@ -68,6 +68,9 @@ namespace InventoryApp
             services.AddTransient<DocumentClient>(cosmosFunc);
             //adding config as singleton
             services.ConfigurePOCO<TCconfig>(this.Configuration.GetSection("TCconfig"));
+            services.AddTransient<ICacheClient, CacheClient>();
+            services.AddTransient<ITrafficCaseRepository, TrafficCaseRepository>();
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
