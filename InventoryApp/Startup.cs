@@ -3,13 +3,17 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
-using InventoryApp.Resources;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Auth;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
+using InventoryApp.Services;
+using InventoryApp.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace InventoryApp
 {
@@ -30,10 +34,10 @@ namespace InventoryApp
         public void ConfigureServices(IServiceCollection services)
         {      
             //Add DB
-            services.AddDbContext<MyDB>(options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddMvc();
+            services.AddMvc(options => {
+                options.Filters.Add(new RequireHttpsAttribute());
+            });
             //Add migration for db
-            services.BuildServiceProvider().GetService<MyDB>().Database.Migrate();
             //Add AAD authentication
             services.AddAuthentication(options => {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -58,6 +62,12 @@ namespace InventoryApp
                  p => new CloudStorageAccount(credentials, "core.usgovcloudapi.net", true);
             services.AddTransient<CloudStorageAccount>(storageAcctFunc);
             services.AddTransient<CloudQueueClient>(p => p.GetService<CloudStorageAccount>().CreateCloudQueueClient());
+            //Add Cosmos
+            Func<IServiceProvider, DocumentClient> cosmosFunc =
+                p => new DocumentClient(new Uri(Configuration["Cosmos:Uri"]), Configuration["Cosmos:Key"]);
+            services.AddTransient<DocumentClient>(cosmosFunc);
+            //adding config as singleton
+            services.ConfigurePOCO<TCconfig>(this.Configuration.GetSection("TCconfig"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

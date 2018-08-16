@@ -1,29 +1,43 @@
-﻿@model InventoryApp.Models.Product
+﻿@model InventoryApp.Models.CaseViewModel
 
-<h2>Create New Product</h2>
+<h2>File new Traffic Case</h2>
 
 <form asp-controller="Products" asp-action="Create" method="post" class="form-horizontal">
     <div asp-validation-summary="All" class="text-danger"></div>
 
     <div class="form-group">
-        <label asp-for="Name" class="col-md-2 control-label"></label>
+        <label asp-for="Case.Name" class="col-md-2 control-label"></label>
         <div class="col-md-10">
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
+            <input asp-for="Case.Name" class="form-control" />
+            <span asp-validation-for="Case.Name" class="text-danger"></span>
         </div>
     </div>
     <div class="form-group">
-        <label asp-for="Description" class="col-md-2 control-label"></label>
+        <label asp-for="Case.Date" class="col-md-2 control-label"></label>
         <div class="col-md-10">
-            <input asp-for="Description" class="form-control" />
-            <span asp-validation-for="Description" class="text-danger"></span>
+            <input asp-for="Case.Date" class="form-control" />
+            <span asp-validation-for="Case.Date" class="text-danger"></span>
         </div>
     </div>
     <div class="form-group">
-        <label asp-for="Quantity" class="col-md-2 control-label"></label>
+        <label asp-for="Case.Violation" class="col-md-2 control-label"></label>
         <div class="col-md-10">
-            <input asp-for="Quantity" class="form-control" />
-            <span asp-validation-for="Quantity" class="text-danger"></span>
+            <input asp-for="Case.Violation" class="form-control" />
+            <span asp-validation-for="Case.Violation" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="Case.License" class="col-md-2 control-label"></label>
+        <div class="col-md-10">
+            <input asp-for="Case.License" class="form-control" />
+            <span asp-validation-for="Case.License" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="Case.Status" class="col-md-2 control-label"></label>
+        <div class="col-md-10">
+            <select asp-for="Case.Status" asp-items="@this.Model.Statuses" class="form-control"></select>
+            <span asp-validation-for="Case.Status" class="text-danger"></span>
         </div>
     </div>
 
