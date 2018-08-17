@@ -10,5 +10,6 @@ namespace TrafficCaseApp.Services
     {
         Task AddCaseToQueue(TrafficCase trafficCase);
         Task<List<TrafficCase>> GetClosedCases();
+        Task InitializeQueue();
     }
 }

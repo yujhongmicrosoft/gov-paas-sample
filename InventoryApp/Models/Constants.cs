@@ -11,5 +11,6 @@ namespace TrafficCaseApp.Models
         public static string DbName = "trafficDb";
         public static string CasesCollection = "traffic-cases";
         public static string StatusCollection = "statuses";
+        public static string QueueName = "closedcases";
     }
 }

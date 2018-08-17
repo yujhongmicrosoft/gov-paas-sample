@@ -30,10 +30,10 @@ namespace TrafficCaseApp.Services
             {
                 // we need to seed data
                 var statusList = new List<Status> {
-                    new Status { Id = "case-filed", Name = "Case Filed" },
-                    new Status { Id = "case-pending", Name = "Case penalty pending" },
-                    new Status { Id = "case-dropped", Name = "Case dropped" },
-                    new Status { Id = "case-closed", Name = "Case closed" },
+                    new Status { Id = "Filed", Name = "Filed" },
+                    new Status { Id = "Pending", Name = "Pending" },
+                    new Status { Id = "Dropped", Name = "Dropped" },
+                    new Status { Id = "Closed", Name = "Closed" },
                 };
                 foreach (var item in statusList)
                 {
