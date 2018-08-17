@@ -3,73 +3,88 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents.Client;
-using InventoryApp.Models;
+using TrafficCaseApp.Models;
 using Microsoft.Azure.Documents;
 using System.Net;
+using Newtonsoft.Json;
 
-
-namespace InventoryApp.Services
+namespace TrafficCaseApp.Services
 {
     public class TrafficCaseRepository : ITrafficCaseRepository
     {
+        private ICacheClient cacheClient;
         private DocumentClient docClient;
-        private TCconfig config;
+        private TCConfig config;
 
-        public TrafficCaseRepository(DocumentClient docClient, TCconfig config)
+        public TrafficCaseRepository(DocumentClient docClient, TCConfig config, ICacheClient cacheClient)
         {
             this.docClient = docClient;
             this.config = config;
+            this.cacheClient = cacheClient;
         }
 
-        public async Task<List<TrafficCase>> GetCases()
+        public async Task Initialize()
         {
-            //make sure collection is created
-            CreateCollection();
-            var collectionUri = UriFactory.CreateDocumentCollectionUri(this.config.cosmos.DatabaseName, this.config.cosmos.CollectionName);
-            var docs = await this.docClient.ReadDocumentFeedAsync(collectionUri, new FeedOptions { MaxItemCount = 20 });
-            List<TrafficCase> caseList = new List<TrafficCase>();
-            foreach (var d in docs)
+            await CreateCollection();
+            await InitializeStatusList();
+        }
+
+        public List<TrafficCase> GetCases()
+        {
+            var collectionUri = UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName);
+            IQueryable<TrafficCase> trafficQuery = this.docClient.CreateDocumentQuery<TrafficCase>(
+                collectionUri)
+                .Where(f => f.id.ToString() != "statuslist");
+
+            return trafficQuery.ToList();
+        }
+
+        public async Task InitializeStatusList()
+        {
+            IQueryable<Status> statusQuery = this.docClient.CreateDocumentQuery<Status>(UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName)).Where(d => d.id == "statuslist");
+            if (statusQuery.AsEnumerable().Count() == 0)
             {
-                caseList.Add(d.ToObject<TrafficCase>());
+                List<string> statusList = new List<string>(new string[] { "Case filed", "Case penalty pending", "Case dropped", "Case closed" });
+                Status statusJson = new Status();
+                statusJson.id = "statuslist";
+                statusJson.statuses = statusList;
+                await this.docClient.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName), statusJson);
             }
-            return caseList;
         }
 
-        public async void CreateCollection()
+        public List<string> GetStatuses()
         {
-            await this.docClient.CreateDocumentCollectionIfNotExistsAsync(UriFactory.CreateDatabaseUri(this.config.cosmos.DatabaseName), new DocumentCollection { Id = this.config.cosmos.CollectionName });
+            IQueryable<Status> statusQuery = this.docClient.CreateDocumentQuery<Status>(UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName)).Where(d => d.id == "statuslist");
+            Status statuslist = new Status();
+            statuslist.statuses = statusQuery.AsEnumerable().FirstOrDefault().statuses;
+            var item = JsonConvert.SerializeObject(statuslist);
+            this.cacheClient.WriteStatus("statuslist", JsonConvert.SerializeObject(statuslist));
+            return JsonConvert.DeserializeObject<Status>(item).statuses;
         }
+
+        public async Task CreateCollection()
+        {
+            await this.docClient.CreateDocumentCollectionIfNotExistsAsync(UriFactory.CreateDatabaseUri(this.config.CosmosConfig.DatabaseName), new DocumentCollection { Id = this.config.CosmosConfig.CollectionName });
+        }
+
         public async Task<String> CreateCase(TrafficCase trafficCase)
         {
-            try
-            {
-                await this.docClient.ReadDocumentAsync(UriFactory.CreateDocumentUri(this.config.cosmos.DatabaseName, this.config.cosmos.CollectionName, trafficCase.Id.ToString()));
-                return ("Error");
-            }
-            catch (DocumentClientException de)
-            {
-                if (de.StatusCode == HttpStatusCode.NotFound)
-                {
-                    await this.docClient.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(this.config.cosmos.DatabaseName, this.config.cosmos.CollectionName), trafficCase);
-                    return ("Successfully created Case");
-                }
-                else
-                {
-                    return ("Error");
-                }
-            }
+            await this.docClient.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName), trafficCase);
+            return ("Successfully created Case");
         }
-        public async void EditCase(TrafficCase trafficCase)
+
+        public async Task EditCase(TrafficCase trafficCase)
         {
-            await this.docClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(this.config.cosmos.DatabaseName, this.config.cosmos.CollectionName, trafficCase.Id.ToString()), trafficCase);
+            var doc = this.docClient.CreateDocumentQuery<Status>(UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName)).Where(d => d.id == trafficCase.id.ToString()).AsEnumerable().SingleOrDefault();
+            await this.docClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName, doc.id), trafficCase);
         }
-        
-        public TrafficCase GetCase(string id)
+
+        public async Task<TrafficCase> GetCase(string id)
         {
-            IQueryable<TrafficCase> familyQuery = this.docClient.CreateDocumentQuery<TrafficCase>(
-                    UriFactory.CreateDocumentCollectionUri(this.config.cosmos.DatabaseName, this.config.cosmos.CollectionName))
-                    .Where(f => f.Id == id);
-            return familyQuery.First<TrafficCase>();
+            
+            var doc = await this.docClient.ReadDocumentAsync(UriFactory.CreateDocumentUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName, id));
+            return (TrafficCase)(dynamic)doc.Resource;
+
         }
     }
 }

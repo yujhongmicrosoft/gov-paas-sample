@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace InventoryApp.Services
+namespace TrafficCaseApp.Services
 {
     public static class Extensions
     {
@@ -20,9 +20,13 @@ namespace InventoryApp.Services
             services.AddSingleton(config);
             return config;
         }
+
         public static SelectList ToSelectList(this List<string> list)
         {
-            return new SelectList(list, "Name", "Name");
+
+           // return new SelectList(list, "Name", "Name");
+            var selectitems = list.Select((r, index) => new SelectListItem { Text = r, Value = r}).ToList();
+            return new SelectList(selectitems, "Value", "Text");
         }
     }
 }

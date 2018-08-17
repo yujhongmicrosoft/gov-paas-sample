@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 
-namespace InventoryApp
+namespace TrafficCaseApp
 {
     public class Program
     {

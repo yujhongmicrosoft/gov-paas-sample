@@ -1,11 +1,11 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace InventoryApp.Models
+namespace TrafficCaseApp.Models
 {
     public class TrafficCase
     {
-        public string Id { get; set; }
+        public Guid id { get; set; }
 
         [Display(Name = "Date of Infraction")]
         [DataType(DataType.Date)]

@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace InventoryApp.Services
+namespace TrafficCaseApp.Services
 {
     public interface ICacheClient
     {
-        List<String> GetStatuses();
-        void InitializeStatuses();
+        string GetStatus(string key);
+        void WriteStatus(string key, string val);
 
     }
 }

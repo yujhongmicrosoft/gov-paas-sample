@@ -2,51 +2,31 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using InventoryApp.Models;
+using TrafficCaseApp.Models;
 using Microsoft.Extensions.Caching.Distributed;
 
-namespace InventoryApp.Services
+namespace TrafficCaseApp.Services
 {
     public class CacheClient : ICacheClient
     {
         private IDistributedCache cache;
-        private TCconfig config;
+        private TCConfig config;
         public List<string> statusKeys = new List<string>(new string[] { "new", "pending", "dropped", "closed" });
 
-        public CacheClient(IDistributedCache cache, TCconfig config)
+        public CacheClient(IDistributedCache cache, TCConfig config)
         {
             this.cache = cache;
             this.config = config;
         }
-        public void InitializeStatuses()
+
+        public string GetStatus(string key)
         {
-            this.cache.SetString("new", "Case filed");
-            this.cache.SetString("pending", "Case penalty pending");
-            this.cache.SetString("dropped", "Case dropped");
-            this.cache.SetString("closed", "Case closed");
+            return this.cache.GetString(key);
         }
-        public List<string> GetStatuses()
+
+        public void WriteStatus(string key, string val)
         {
-            List<string> statuses = new List<string>();
-            while (statusKeys != null)
-            {
-                if (statusKeys.Count > 0)
-                {
-                    foreach (string statusKey in statusKeys)
-                    {
-                        string item = this.cache.GetString(statusKey);
-                        if(item == null)
-                        {
-                            InitializeStatuses();
-                            item = this.cache.GetString(statusKey);
-                        }
-                        List<String> substrings = item.Split(",").ToList();
-                        string status = substrings[1];
-                        statuses.Add(status);
-                    }
-                }
-            }
-            return statuses;
+            this.cache.SetString(key, val);
         }
     }
 }

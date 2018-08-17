@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace InventoryApp.Models
+namespace TrafficCaseApp.Models
 {
-    public class TCconfig
+    public class TCConfig
     {
-        public Cosmos cosmos { get; set; }
+        public CosmosConfig CosmosConfig { get; set; }
     }
         
-    public class Cosmos
+    public class CosmosConfig
     {
         public string Uri { get; set; }
         public string Key { get; set; }

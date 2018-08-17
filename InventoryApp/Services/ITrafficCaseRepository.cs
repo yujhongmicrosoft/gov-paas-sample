@@ -2,17 +2,20 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using InventoryApp.Models;
+using TrafficCaseApp.Models;
 
-namespace InventoryApp.Services
+namespace TrafficCaseApp.Services
 {
     public interface ITrafficCaseRepository
     {
-        Task<List<TrafficCase>> GetCases();
-        void CreateCollection();
+        Task Initialize();
+        List<TrafficCase> GetCases();
+        Task InitializeStatusList();
+        List<string> GetStatuses();
+        Task CreateCollection();
         Task<String> CreateCase(TrafficCase trafficCase);
-        void EditCase(TrafficCase trafficCase);
-        TrafficCase GetCase(string id);
+        Task EditCase(TrafficCase trafficCase);
+        Task<TrafficCase> GetCase(string id);
 
     }
 }

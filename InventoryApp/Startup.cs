@@ -10,12 +10,12 @@ using Microsoft.WindowsAzure.Storage.Queue;
 using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
-using InventoryApp.Services;
-using InventoryApp.Models;
+using TrafficCaseApp.Services;
+using TrafficCaseApp.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-namespace InventoryApp
+namespace TrafficCaseApp
 {
     public class Startup
     {
@@ -25,6 +25,10 @@ namespace InventoryApp
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+            if (env.IsDevelopment())
+            {
+                builder.AddUserSecrets<Startup>();
+            }
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
         }
@@ -32,7 +36,8 @@ namespace InventoryApp
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {      
+        {
+            services.ConfigurePOCO<TCConfig>(this.Configuration.GetSection("TCConfig"));
             //Add DB
             services.AddMvc(options => {
                 options.Filters.Add(new RequireHttpsAttribute());
@@ -62,21 +67,26 @@ namespace InventoryApp
                  p => new CloudStorageAccount(credentials, "core.usgovcloudapi.net", true);
             services.AddTransient<CloudStorageAccount>(storageAcctFunc);
             services.AddTransient<CloudQueueClient>(p => p.GetService<CloudStorageAccount>().CreateCloudQueueClient());
-            //Add Cosmos
-            Func<IServiceProvider, DocumentClient> cosmosFunc =
-                p => new DocumentClient(new Uri(Configuration["Cosmos:Uri"]), Configuration["Cosmos:Key"]);
-            services.AddTransient<DocumentClient>(cosmosFunc);
+            //Add CosmosConfigConfig
+            Func<IServiceProvider, DocumentClient> CosmosConfigFunc =
+                p => new DocumentClient(new Uri(Configuration["TCConfig:CosmosConfig:Uri"]), Configuration["TCConfig:CosmosConfig:Key"]);
+            services.AddTransient<DocumentClient>(CosmosConfigFunc);
             //adding config as singleton
-            services.ConfigurePOCO<TCconfig>(this.Configuration.GetSection("TCconfig"));
             services.AddTransient<ICacheClient, CacheClient>();
             services.AddTransient<ITrafficCaseRepository, TrafficCaseRepository>();
+
+
 
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-
+            using (var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope())
+            {
+                var initTask = serviceScope.ServiceProvider.GetService<ITrafficCaseRepository>().Initialize();
+                initTask.Wait();
+            }
 
             if (env.IsDevelopment())
             {
@@ -96,7 +106,7 @@ namespace InventoryApp
             {
                 routes.MapRoute(
                     name: "default",
-                    template: "{controller=Products}/{action=Index}/{id?}");
+                    template: "{controller=Cases}/{action=Index}/{id?}");
             });
         }
     }
