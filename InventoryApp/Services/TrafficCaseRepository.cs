@@ -64,6 +64,7 @@ namespace TrafficCaseApp.Services
 
         public async Task CreateCollection()
         {
+            await this.docClient.CreateDatabaseIfNotExistsAsync(new Database { Id = CosmosInfo.DbName });
             await this.docClient.CreateDocumentCollectionIfNotExistsAsync(GetDatabaseUri(), new DocumentCollection { Id = CosmosInfo.CasesCollection });
         }
 
