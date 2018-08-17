@@ -22,10 +22,12 @@ namespace TrafficCaseApp.Controllers
     public class CasesController : Controller
     {
         private ITrafficCaseRepository caseRepository;
+        private IQueueClient queueClient;
 
-        public CasesController(ITrafficCaseRepository caseRepository)
+        public CasesController(ITrafficCaseRepository caseRepository, IQueueClient queueClient)
         {
             this.caseRepository = caseRepository;
+            this.queueClient = queueClient;
         }
 
         // GET: Cases
@@ -54,8 +56,9 @@ namespace TrafficCaseApp.Controllers
         {
             if (ModelState.IsValid)
             {
+                trafficCase.Id = Guid.NewGuid();
                 await this.caseRepository.CreateCase(trafficCase);
-               // Restock(product);
+                await this.queueClient.AddCaseToQueue(trafficCase);
                 return RedirectToAction(nameof(Index));
             }
             CaseViewModel caseVM = new CaseViewModel();
@@ -100,48 +103,47 @@ namespace TrafficCaseApp.Controllers
             else
             {
                 this.caseRepository.EditCase(trafficCase);
-              //  Restock(product);
+                this.queueClient.AddCaseToQueue(trafficCase);
+                //  Restock(product);
                 return this.RedirectToAction("Index");
             }
         }
 
         //// GET: Products/Delete/5
-        //public async Task<IActionResult> Delete(int? id)
-        //{
-        //    if (id == null)
-        //    {
-        //        return NotFound();
-        //    }
+        public async Task<IActionResult> Delete(string id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
 
-        //    var product = await _context.Products
-        //        .SingleOrDefaultAsync(m => m.Id == id);
+            var caseDelete = await this.caseRepository.GetCase(id);
 
-        //    if (product == null)
-        //    {
-        //        return NotFound();
-        //    }
+            if (caseDelete == null)
+            {
+                return NotFound();
+            }
 
-        //    return View(product);
-        //}
+            return View(caseDelete);
+        }
 
         //// POST: Products/Delete/5z
-        //[HttpPost, ActionName("Delete")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteConfirmed(int id)
-        //{
-        //    var product = await _context.Products.SingleOrDefaultAsync(m => m.Id == id);
-        //    _context.Products.Remove(product);
-        //    await _context.SaveChangesAsync();
-        //    return RedirectToAction(nameof(Index));
-        //}
-        ////Displays items needed to be restocked
-        //[Route("Products/DisplayRestock")]
-        //public IActionResult DisplayRestock()
-        //{
-        //    this.ViewBag.Active = false;
-        //    List<RestockProducts> list = RestockList();
-        //    return this.View("DisplayRestock", list);
-        //}
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(string id)
+        {
+            await this.caseRepository.DeleteCase(id);
+            return RedirectToAction(nameof(Index));
+        }
+
+        //Displays items needed to be restocked
+        [Route("Cases/Closed")]
+        public IActionResult Closed()
+        {
+            this.ViewBag.Active = false;
+            var list = this.queueClient.GetClosedCases();
+            return this.View("Closed", list);
+        }
 
 
         //private bool ProductExists(int id)
@@ -152,7 +154,7 @@ namespace TrafficCaseApp.Controllers
         ////Writes items needed to be restocked to a Queue as well as a Redis Cache
         //public void Restock(Product product)
         //{
-            
+
         //    var restockQueue = this.queueClient.GetQueueReference("<name of queue>"); 
         //    var queueMsg = new CloudQueueMessage(product.Name + " : " + product.Description);
         //    string restock = product.Name + "," + product.Description;
@@ -169,7 +171,7 @@ namespace TrafficCaseApp.Controllers
 
         //        temp.Add(id);
         //        keys = temp;
-  
+
         //    }
         //}
 

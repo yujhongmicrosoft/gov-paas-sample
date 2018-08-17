@@ -74,8 +74,7 @@ namespace TrafficCaseApp
             //adding config as singleton
             services.AddTransient<ICacheClient, CacheClient>();
             services.AddTransient<ITrafficCaseRepository, TrafficCaseRepository>();
-
-
+            services.AddTransient<IQueueClient, QueueClient>();
 
         }
 

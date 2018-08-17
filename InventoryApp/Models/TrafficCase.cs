@@ -1,11 +1,13 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace TrafficCaseApp.Models
 {
     public class TrafficCase
     {
-        public Guid id { get; set; }
+        [JsonProperty("id")]
+        public Guid Id { get; set; }
 
         [Display(Name = "Date of Infraction")]
         [DataType(DataType.Date)]

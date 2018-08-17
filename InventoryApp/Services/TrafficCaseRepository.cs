@@ -34,7 +34,7 @@ namespace TrafficCaseApp.Services
             var collectionUri = UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName);
             IQueryable<TrafficCase> trafficQuery = this.docClient.CreateDocumentQuery<TrafficCase>(
                 collectionUri)
-                .Where(f => f.id.ToString() != "statuslist");
+                .Where(f => f.Id.ToString() != "statuslist");
 
             return trafficQuery.ToList();
         }
@@ -75,8 +75,14 @@ namespace TrafficCaseApp.Services
 
         public async Task EditCase(TrafficCase trafficCase)
         {
-            var doc = this.docClient.CreateDocumentQuery<Status>(UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName)).Where(d => d.id == trafficCase.id.ToString()).AsEnumerable().SingleOrDefault();
+            var doc = this.docClient.CreateDocumentQuery<Status>(UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName)).Where(d => d.id == trafficCase.Id.ToString()).AsEnumerable().SingleOrDefault();
             await this.docClient.ReplaceDocumentAsync(UriFactory.CreateDocumentUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName, doc.id), trafficCase);
+        }
+        
+        public async Task DeleteCase(string id)
+        {
+            var doc = this.docClient.CreateDocumentQuery<Status>(UriFactory.CreateDocumentCollectionUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName)).Where(d => d.id == id.ToString()).AsEnumerable().SingleOrDefault();
+            await this.docClient.DeleteDocumentAsync(UriFactory.CreateDocumentUri(this.config.CosmosConfig.DatabaseName, this.config.CosmosConfig.CollectionName, doc.id));
         }
 
         public async Task<TrafficCase> GetCase(string id)
