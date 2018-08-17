@@ -7,8 +7,8 @@ namespace TrafficCaseApp.Services
 {
     public interface ICacheClient
     {
-        string GetStatus(string key);
-        void WriteStatus(string key, string val);
+        Task<string> GetStatus(string key);
+        Task WriteStatus(string key, string val);
 
     }
 }

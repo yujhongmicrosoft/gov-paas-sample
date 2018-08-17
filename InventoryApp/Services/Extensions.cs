@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TrafficCaseApp.Models;
 
 namespace TrafficCaseApp.Services
 {
@@ -21,12 +22,13 @@ namespace TrafficCaseApp.Services
             return config;
         }
 
-        public static SelectList ToSelectList(this List<string> list)
+        public static SelectList ToSelectList(this List<Status> list)
         {
 
-           // return new SelectList(list, "Name", "Name");
-            var selectitems = list.Select((r, index) => new SelectListItem { Text = r, Value = r}).ToList();
-            return new SelectList(selectitems, "Value", "Text");
+            // return new SelectList(list, "Name", "Name");
+            //var selectitems = list.Select((r, index) => new SelectListItem { Text = r, Value = r}).ToList();
+            //return new SelectList(selectitems, "Value", "Text");
+            return new SelectList(list, "Id", "Name");
         }
     }
 }

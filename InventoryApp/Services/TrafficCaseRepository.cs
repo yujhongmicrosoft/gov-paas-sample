@@ -14,58 +14,52 @@ namespace TrafficCaseApp.Services
     {
         private ICacheClient cacheClient;
         private DocumentClient docClient;
-        private TCConfig config;
 
-        public TrafficCaseRepository(DocumentClient docClient, TCConfig config, ICacheClient cacheClient)
+        public TrafficCaseRepository(DocumentClient docClient, ICacheClient cacheClient)
         {
             this.docClient = docClient;
-            this.config = config;
             this.cacheClient = cacheClient;
         }
 
         public async Task Initialize()
         {
-            await CreateCollection();
-            await InitializeStatusList();
+            await this.docClient.CreateDatabaseIfNotExistsAsync(new Database { Id = CosmosInfo.DbName });
+            await this.docClient.CreateDocumentCollectionIfNotExistsAsync(GetDatabaseUri(), new DocumentCollection { Id = CosmosInfo.CasesCollection });
+            var response = await this.docClient.CreateDocumentCollectionIfNotExistsAsync(GetDatabaseUri(), new DocumentCollection { Id = CosmosInfo.StatusCollection });
+            if (response.StatusCode == HttpStatusCode.Created)
+            {
+                // we need to seed data
+                var statusList = new List<Status> {
+                    new Status { Id = "case-filed", Name = "Case Filed" },
+                    new Status { Id = "case-pending", Name = "Case penalty pending" },
+                    new Status { Id = "case-dropped", Name = "Case dropped" },
+                    new Status { Id = "case-closed", Name = "Case closed" },
+                };
+                foreach (var item in statusList)
+                {
+                    await this.docClient.CreateDocumentAsync(GetDocCollectionUri(CosmosInfo.StatusCollection), item);
+                }
+            }
         }
 
         public List<TrafficCase> GetCases()
         {
             var collectionUri = GetDocCollectionUri(CosmosInfo.CasesCollection);
-            IQueryable<TrafficCase> trafficQuery = this.docClient.CreateDocumentQuery<TrafficCase>(
-                collectionUri)
-                .Where(f => f.Id.ToString() != "statuslist");
-
+            IQueryable<TrafficCase> trafficQuery = this.docClient.CreateDocumentQuery<TrafficCase>(collectionUri);
             return trafficQuery.ToList();
         }
 
-        public async Task InitializeStatusList()
+        public async Task<List<Status>> GetStatuses()
         {
-            IQueryable<Status> statusQuery = this.docClient.CreateDocumentQuery<Status>(GetDocCollectionUri(CosmosInfo.CasesCollection)).Where(d => d.id == "statuslist");
-            if (statusQuery.AsEnumerable().Count() == 0)
+            const string cacheKey = "statuses";
+            var statuses = await this.cacheClient.GetStatus(cacheKey);
+            if (statuses == null)
             {
-                List<string> statusList = new List<string>(new string[] { "Case filed", "Case penalty pending", "Case dropped", "Case closed" });
-                Status statusJson = new Status();
-                statusJson.id = "statuslist";
-                statusJson.statuses = statusList;
-                await this.docClient.CreateDocumentAsync(GetDocCollectionUri(CosmosInfo.CasesCollection), statusJson);
+                var statusList = this.docClient.CreateDocumentQuery<Status>(GetDocCollectionUri(CosmosInfo.StatusCollection)).ToList();
+                statuses = JsonConvert.SerializeObject(statusList);
+                await this.cacheClient.WriteStatus(cacheKey, statuses);
             }
-        }
-
-        public List<string> GetStatuses()
-        {
-            IQueryable<Status> statusQuery = this.docClient.CreateDocumentQuery<Status>(GetDocCollectionUri(CosmosInfo.CasesCollection)).Where(d => d.id == "statuslist");
-            Status statuslist = new Status();
-            statuslist.statuses = statusQuery.AsEnumerable().FirstOrDefault().statuses;
-            var item = JsonConvert.SerializeObject(statuslist);
-            this.cacheClient.WriteStatus("statuslist", JsonConvert.SerializeObject(statuslist));
-            return JsonConvert.DeserializeObject<Status>(item).statuses;
-        }
-
-        public async Task CreateCollection()
-        {
-            await this.docClient.CreateDatabaseIfNotExistsAsync(new Database { Id = CosmosInfo.DbName });
-            await this.docClient.CreateDocumentCollectionIfNotExistsAsync(GetDatabaseUri(), new DocumentCollection { Id = CosmosInfo.CasesCollection });
+            return JsonConvert.DeserializeObject<List<Status>>(statuses);
         }
 
         public async Task<String> CreateCase(TrafficCase trafficCase)
@@ -76,22 +70,19 @@ namespace TrafficCaseApp.Services
 
         public async Task EditCase(TrafficCase trafficCase)
         {
-            var doc = this.docClient.CreateDocumentQuery<Status>(GetDocCollectionUri(CosmosInfo.CasesCollection)).Where(d => d.id == trafficCase.Id.ToString()).AsEnumerable().SingleOrDefault();
-            await this.docClient.ReplaceDocumentAsync(GetDocumentUri(CosmosInfo.CasesCollection, doc.id), trafficCase);
+            var doc = this.docClient.CreateDocumentQuery<Status>(GetDocCollectionUri(CosmosInfo.CasesCollection)).Where(d => d.Id == trafficCase.Id.ToString()).AsEnumerable().SingleOrDefault();
+            await this.docClient.ReplaceDocumentAsync(GetDocumentUri(CosmosInfo.CasesCollection, doc.Id), trafficCase);
         }
         
         public async Task DeleteCase(string id)
         {
-            var doc = this.docClient.CreateDocumentQuery<Status>(GetDocCollectionUri(CosmosInfo.CasesCollection)).Where(d => d.id == id.ToString()).AsEnumerable().SingleOrDefault();
-            await this.docClient.DeleteDocumentAsync(GetDocumentUri(CosmosInfo.CasesCollection, doc.id));
+            await this.docClient.DeleteDocumentAsync(GetDocumentUri(CosmosInfo.CasesCollection, id));
         }
 
         public async Task<TrafficCase> GetCase(string id)
         {
-            
             var doc = await this.docClient.ReadDocumentAsync(GetDocumentUri(CosmosInfo.CasesCollection, id));
             return (TrafficCase)(dynamic)doc.Resource;
-
         }
 
         #region Private Methods

@@ -19,14 +19,14 @@ namespace TrafficCaseApp.Services
             this.config = config;
         }
 
-        public string GetStatus(string key)
+        public async Task<string> GetStatus(string key)
         {
-            return this.cache.GetString(key);
+            return await this.cache.GetStringAsync(key);
         }
 
-        public void WriteStatus(string key, string val)
+        public async Task WriteStatus(string key, string val)
         {
-            this.cache.SetString(key, val);
+            await this.cache.SetStringAsync(key, val);
         }
     }
 }

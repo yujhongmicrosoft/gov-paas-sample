@@ -10,9 +10,7 @@ namespace TrafficCaseApp.Services
     {
         Task Initialize();
         List<TrafficCase> GetCases();
-        Task InitializeStatusList();
-        List<string> GetStatuses();
-        Task CreateCollection();
+        Task<List<Status>> GetStatuses();
         Task<String> CreateCase(TrafficCase trafficCase);
         Task EditCase(TrafficCase trafficCase);
         Task<TrafficCase> GetCase(string id);
