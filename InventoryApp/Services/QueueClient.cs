@@ -19,7 +19,7 @@ namespace TrafficCaseApp.Services
         
         public async Task AddCaseToQueue(TrafficCase trafficCase)
         {
-            CloudQueue queue = this.queueClient.GetQueueReference("closedCases");
+            CloudQueue queue = this.queueClient.GetQueueReference("closedcases");
             await queue.CreateIfNotExistsAsync();
 
             if (trafficCase.Status == "Case closed")
@@ -31,7 +31,7 @@ namespace TrafficCaseApp.Services
 
         public async Task<List<TrafficCase>> GetClosedCases()
         {
-            CloudQueue queue = this.queueClient.GetQueueReference("closedCases");
+            CloudQueue queue = this.queueClient.GetQueueReference("closedcases");
             await queue.CreateIfNotExistsAsync();
             var batch = await queue.GetMessagesAsync(3);
             List<TrafficCase> closedCaseList = new List<TrafficCase>();

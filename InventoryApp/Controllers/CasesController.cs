@@ -138,10 +138,10 @@ namespace TrafficCaseApp.Controllers
 
         //Displays items needed to be restocked
         [Route("Cases/Closed")]
-        public IActionResult Closed()
+        public async Task<IActionResult> Closed()
         {
             this.ViewBag.Active = false;
-            var list = this.queueClient.GetClosedCases();
+            var list = await this.queueClient.GetClosedCases();
             return this.View("Closed", list);
         }
 
