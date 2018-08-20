@@ -108,7 +108,8 @@
       "location": "[resourceGroup().location]",
       "apiVersion": "2015-08-01",
       "dependsOn": [
-        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]"
+        "[resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName'))]",
+        "[resourceId('Microsoft.Cache/Redis', variables('redisCacheName'))]"
       ],
       "tags": {
         "[concat('hidden-related:', resourceId('Microsoft.Web/serverfarms', variables('appServicePlanName')))]": "Resource",
@@ -121,7 +122,7 @@
           "connectionStrings": [
             {
               "name": "RedisConnection",
-              "connectionString": "foobar-redis-connection"
+              "connectionString": "[concat(variables('redisCacheName'),'.redis.cache.usgovcloudapi.net,abortConnect=false,ssl=true,password=', listKeys(resourceId('Microsoft.Cache/Redis', variables('redisCacheName')), '2015-08-01').primaryKey)]"
             }
           ]
         }
@@ -133,7 +134,9 @@
           "apiVersion": "2015-08-01",
           "dependsOn": [
             "[resourceId('Microsoft.Web/sites', variables('webAppName'))]",
-            "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webAppName'), 'web')]"
+            "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webAppName'), 'web')]",
+            "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbAccountName'))]",
+            "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
           ],
           "tags": {
             "displayName": "appsettings"
