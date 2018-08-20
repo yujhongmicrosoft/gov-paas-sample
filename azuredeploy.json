@@ -207,7 +207,25 @@
         "defaultExperience": "SQL",
         "displayName":  "CosmosDB"
       }
-    }
+    },
+    {
+      "name": "[variables('redisCacheName')]",
+      "type": "Microsoft.Cache/Redis",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-04-01",
+      "dependsOn": [],
+      "tags": {
+        "displayName": "redisCache"
+      },
+      "properties": {
+        "sku": {
+          "name": "[parameters('redisCacheNameSKUName')]",
+          "family": "[parameters('redisCacheNameSKUFamily')]",
+          "capacity": "[parameters('redisCacheNameSKUCapacity')]"
+        },
+        "redisVersion": "[variables('redisCacheNameRedisVersion')]"
+      }
+    } 
     
   ],
   "outputs": {}
