@@ -24,10 +24,6 @@ namespace TrafficCaseApp.Services
 
         public static SelectList ToSelectList(this List<Status> list)
         {
-
-            // return new SelectList(list, "Name", "Name");
-            //var selectitems = list.Select((r, index) => new SelectListItem { Text = r, Value = r}).ToList();
-            //return new SelectList(selectitems, "Value", "Text");
             return new SelectList(list, "Id", "Name");
         }
     }

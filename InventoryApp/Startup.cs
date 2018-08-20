@@ -13,6 +13,7 @@ using Microsoft.Azure.Documents.Client;
 using TrafficCaseApp.Services;
 using TrafficCaseApp.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 namespace TrafficCaseApp
@@ -32,18 +33,27 @@ namespace TrafficCaseApp
             builder.AddEnvironmentVariables();
             Configuration = builder.Build();
         }
+
         public IConfigurationRoot Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.ConfigurePOCO<TCConfig>(this.Configuration.GetSection("TCConfig"));
-            //Add DB
+            services.Configure<CookiePolicyOptions>(options =>
+            {
+                // This lambda determines whether user consent for non-essential cookies is needed for a given request.
+                options.CheckConsentNeeded = context => true;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            });
+
             services.AddMvc(options => {
                 options.Filters.Add(new RequireHttpsAttribute());
             });
-            //Add migration for db
-            //Add AAD authentication
+
+            services.AddMvc()
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
             services.AddAuthentication(options => {
                 options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
                 options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
@@ -60,18 +70,10 @@ namespace TrafficCaseApp
                 options.Configuration = Configuration.GetConnectionString("RedisConnection");
                 options.InstanceName = "master";
             });
-
-            //Add Azure Storage
-            var credentials = new StorageCredentials(Configuration["Storage:AccountName"], Configuration["Storage:AccountKey"]);
-            Func<IServiceProvider, CloudStorageAccount> storageAcctFunc =
-                 p => new CloudStorageAccount(credentials, "core.usgovcloudapi.net", true);
-            services.AddTransient<CloudStorageAccount>(storageAcctFunc);
+            services.AddTransient<ServiceFactory>();
+            services.AddTransient<CloudStorageAccount>(p => p.GetService<ServiceFactory>().CreateCloudStorageAccount());
+            services.AddTransient<DocumentClient>(p => p.GetService<ServiceFactory>().CreateDocumentClient());
             services.AddTransient<CloudQueueClient>(p => p.GetService<CloudStorageAccount>().CreateCloudQueueClient());
-            //Add CosmosConfigConfig
-            Func<IServiceProvider, DocumentClient> CosmosConfigFunc =
-                p => new DocumentClient(new Uri(Configuration["TCConfig:CosmosConfig:Uri"]), Configuration["TCConfig:CosmosConfig:Key"]);
-            services.AddTransient<DocumentClient>(CosmosConfigFunc);
-            //adding config as singleton
             services.AddTransient<ICacheClient, CacheClient>();
             services.AddTransient<ITrafficCaseRepository, TrafficCaseRepository>();
             services.AddTransient<IQueueClient, QueueClient>();
@@ -91,7 +93,6 @@ namespace TrafficCaseApp
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
             }
             else
             {
@@ -100,7 +101,6 @@ namespace TrafficCaseApp
 
             app.UseStaticFiles();
             app.UseAuthentication();
-
 
             app.UseMvc(routes =>
             {

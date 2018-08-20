@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.Documents.Client;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,15 +12,17 @@ namespace TrafficCaseApp.Services
     public class ServiceFactory
     {
         private TCConfig config;
+
         public ServiceFactory(TCConfig config)
         {
             this.config = config;
         }
+
         public CloudStorageAccount CreateCloudStorageAccount() => 
             new CloudStorageAccount(
-                new StorageCredentials(config., Configuration["Storage:AccountKey"]);
-        Func<IServiceProvider, CloudStorageAccount> storageAcctFunc =
-             p => new CloudStorageAccount(credentials, "core.usgovcloudapi.net", true);
+                new StorageCredentials(config.StorageConfig.AccountName, config.StorageConfig.AccountKey),
+                config.StorageConfig.EndPointSuffix, true);
+
         public DocumentClient CreateDocumentClient() => new DocumentClient(new Uri(this.config.CosmosConfig.Uri), this.config.CosmosConfig.Key);
 
     }
