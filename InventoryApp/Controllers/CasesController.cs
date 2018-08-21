@@ -34,7 +34,7 @@ namespace TrafficCaseApp.Controllers
             return View(cases);
         }
 
-        // GET: Products/Create
+        // GET: Cases/Create
         public async Task<IActionResult> Create()
         {
             CaseViewModel caseVM = new CaseViewModel();
@@ -44,7 +44,7 @@ namespace TrafficCaseApp.Controllers
             return View(caseVM);
         }
 
-        // POST: Products/Create
+        // POST: Cases/Create
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
@@ -64,7 +64,7 @@ namespace TrafficCaseApp.Controllers
             return View(caseVM);
         }
 
-        // GET: Products/Edit/5
+        // GET: Cases/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
             if (id == null)
@@ -83,7 +83,7 @@ namespace TrafficCaseApp.Controllers
             return View(caseVM);
         }
 
-        // POST: Products/Edit/5
+        // POST: Cases/Edit/5
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
@@ -101,12 +101,11 @@ namespace TrafficCaseApp.Controllers
             {
                 await this.caseRepository.EditCase(trafficCase);
                 await this.queueClient.AddCaseToQueue(trafficCase);
-                //  Restock(product);
                 return this.RedirectToAction("Index");
             }
         }
 
-        //// GET: Products/Delete/5
+        //// GET: Cases/Delete/5
         public async Task<IActionResult> Delete(string id)
         {
             if (id == null)
@@ -124,7 +123,7 @@ namespace TrafficCaseApp.Controllers
             return View(caseDelete);
         }
 
-        //// POST: Products/Delete/5z
+        //// POST: Cases/Delete/5z
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(string id)
@@ -133,7 +132,7 @@ namespace TrafficCaseApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        //Displays items needed to be restocked
+        //Displays closed cases
         [Route("Cases/Closed")]
         public async Task<IActionResult> Closed()
         {
