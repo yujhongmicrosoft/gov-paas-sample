@@ -1,6 +1,6 @@
 ---
 services: government
-platforms: aspnetcore2.0
+platforms: aspnetcore2.1
 author: yujhong
 ---
 
