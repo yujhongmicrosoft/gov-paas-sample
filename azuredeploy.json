@@ -133,8 +133,8 @@
           "type": "config",
           "apiVersion": "2015-08-01",
           "dependsOn": [
-            "[resourceId('Microsoft.Web/sites', variables('webAppName'))]",
             "[resourceId('Microsoft.Web/Sites/sourcecontrols', variables('webAppName'), 'web')]",
+            "[resourceId('Microsoft.Web/sites', variables('webAppName'))]",
             "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('cosmosDbAccountName'))]",
             "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
           ],
