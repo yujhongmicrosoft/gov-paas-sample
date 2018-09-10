@@ -159,7 +159,7 @@
             "[resourceId('Microsoft.Web/sites', variables('webAppName'))]"
           ],
           "properties": {
-            "RepoUrl": "https://github.com/yujhongmicrosoft/gov-paas-sample.git",
+            "RepoUrl": "https://github.com/Azure-Samples/gov-paas-sample.git",
             "branch": "master",
             "IsManualIntegration": true
           }
