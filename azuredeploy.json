@@ -10,6 +10,10 @@
       "type": "string",
       "minLength": 1
     },
+    "azure-ad-tenant": {
+      "type": "string",
+      "minLength": 1
+    },
     "app-planName": {
       "type": "string",
       "minLength": 1
@@ -142,13 +146,14 @@
             "displayName": "appsettings"
           },
           "properties": {
-            "Storage:AccountName": "[variables('storageAccountName')]",
-            "Storage:AccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]",
+            "TCConfig:StorageConfig:AccountName": "[variables('storageAccountName')]",
+            "TCConfig:StorageConfig:EndPointSuffix": "core.usgovcloudapi.net",
+            "TCConfig:StorageConfig:AccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), providers('Microsoft.Storage', 'storageAccounts').apiVersions[0]).keys[0].value]",
             "TCConfig:CosmosConfig:Uri": "[reference(concat('Microsoft.DocumentDb/databaseAccounts/', variables('cosmosDbAccountName'))).documentEndpoint]",
             "TCConfig:CosmosConfig:Key": "[listKeys(resourceId('Microsoft.DocumentDb/databaseAccounts', variables('cosmosDbAccountName')), '2015-04-08').primaryMasterKey]",
             "Authentication:AzureAd:ClientId": "[parameters('azure-ad-app-clientid')]",
             "Authentication:AzureAd:Domain": "[parameters('azure-ad-domain')]",
-            "Authentication:AzureAd:TenantId": "[parameters('azure-ad-domain')]"
+            "Authentication:AzureAd:TenantId": "[parameters('azure-ad-tenant')]"
           }
         },
         {
