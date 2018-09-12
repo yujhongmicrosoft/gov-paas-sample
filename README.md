@@ -43,7 +43,7 @@ To run locally you will additionally need:
 
 After clicking on the "Deploy to Azure Gov" button below, you will be prompted with a ARM deployment template in the portal. Fill in the values for your AAD client id and domain name with the values saved in step 7 and 8 in the previous section. Enter the name of your choice for the App plan name parameter, and click create. 
 
-<a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyujhongmicrosoft%2Fgov-paas-sample%2Fmaster%2Fazuredeploy.json" target="_blank">
+<a href="https://portal.azure.us/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fyujhongmicrosoft%2Fgov-paas-sample%2Fmaster%2Fazuredeploytest.json" target="_blank">
     <img src="http://azuredeploy.net/AzureGov.png" />
 </a> 
 
